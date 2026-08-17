@@ -16,6 +16,8 @@ export interface SiteSettings {
   hero_subtitle: string;
   hero_bg_image: string | null;
   hero_product_image: string | null;
+  hero_cta_label: string | null;
+  hero_cta_link: string | null;
 }
 
 export interface CategorySubItem {
@@ -46,6 +48,8 @@ export interface Product {
   is_active: boolean;
   is_purchasable: boolean;
   price: number;
+  discount_price: number;
+  stock: number;
   features?: string[];
   gallery?: { id: number; image: string; alt: string }[];
 }
@@ -83,9 +87,11 @@ export interface CartItem {
   product: number;
   product_name: string;
   product_price: number;
+  product_discount_price: number;
   product_image: string | null;
   quantity: number;
   subtotal: number;
+  max_stock: number;
 }
 
 export interface Cart {

@@ -1,15 +1,17 @@
-import Link from 'next/link';
-import { ArrowLeft, ImageIcon } from 'lucide-react';
 import { mediaUrl } from '@/lib/api';
 import type { Product } from '@/lib/types';
 import { formatPrice } from '@/lib/utils';
+import { ArrowLeft, ImageIcon } from 'lucide-react';
+import Link from 'next/link';
 
 export default function ProductCard({ product }: { product: Product }) {
   const img = mediaUrl(product.image);
+  const hasDiscount = product.discount_price && product.discount_price > 0;
+  const finalPrice = hasDiscount ? product.discount_price : product.price;
 
   return (
     <Link
-      href={`/products/${product.id}`}
+      href={`/products/${product.slug}`}
       className="group block bg-white rounded-3xl border border-line overflow-hidden card-hover"
     >
       <div className="relative aspect-4/3 bg-surface overflow-hidden grid place-items-center">
@@ -26,17 +28,37 @@ export default function ProductCard({ product }: { product: Product }) {
             <span className="text-xs text-muted">بدون تصویر</span>
           </div>
         )}
+
         {product.is_featured && (
           <span className="absolute top-3 right-3 bg-brand text-white text-xs font-bold px-3 py-1 rounded-full">
             ویژه
           </span>
         )}
-        {product.is_purchasable && product.price > 0 && (
-          <span className="absolute bottom-3 left-3 bg-ink/80 backdrop-blur-sm text-white text-sm font-bold px-3 py-1.5 rounded-full">
-            {formatPrice(product.price)} تومان
+
+        {/* Discount Badge */}
+        {hasDiscount && (
+          <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+            تخفیف
           </span>
         )}
+
+        {/* Price */}
+        {product.is_purchasable && product.price > 0 && (
+          <div className="absolute bottom-3 left-3 bg-ink/80 backdrop-blur-sm text-white text-sm font-bold px-3 py-1.5 rounded-lg">
+            {hasDiscount ? (
+              <div className="flex flex-col items-end">
+                <span className="text-xs line-through text-white/60">
+                  {formatPrice(product.price)} ریال
+                </span>
+                <span className="text-brand-soft">{formatPrice(product.discount_price)} ریال</span>
+              </div>
+            ) : (
+              <span>{formatPrice(product.price)}</span>
+            )}
+          </div>
+        )}
       </div>
+
       <div className="p-5">
         {product.category_name && (
           <span className="text-xs text-brand font-bold">{product.category_name}</span>

@@ -1,20 +1,25 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { getCart, createOrder, initiatePayment } from '@/lib/api';
-import type { Cart as CartType } from '@/lib/types';
-import { ArrowLeft, ShieldCheck, Truck } from 'lucide-react';
 import Reveal from '@/components/ui/Reveal';
+import { createOrder, getCart, initiatePayment, apiFetch } from '@/lib/api';
+import type { Cart as CartType } from '@/lib/types';
 import { formatPrice } from '@/lib/utils';
+import { ArrowLeft, ShieldCheck, Truck } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
-const SHIPPING_COST = Number(process.env.NEXT_PUBLIC_SHIPPING_COST) || 100000;
+interface Settings {
+  shipping_cost: number;
+  free_shipping_threshold: number;
+}
 
 export default function CheckoutPage() {
   const [cart, setCart] = useState<CartType | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [shippingCost, setShippingCost] = useState(0);
+  const [freeThreshold, setFreeThreshold] = useState(0);
   const [form, setForm] = useState({
     full_name: '',
     phone: '',
@@ -23,20 +28,30 @@ export default function CheckoutPage() {
   });
 
   useEffect(() => {
-    loadCart();
+    loadData();
   }, []);
 
-  const loadCart = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
-      const data = await getCart();
-      setCart(data);
+      const [cartData, settingsData] = await Promise.all([
+        getCart(),
+        apiFetch<Settings>('/settings/', { auth: false }),
+      ]);
+      setCart(cartData);
+      setShippingCost(settingsData?.shipping_cost || 0);
+      setFreeThreshold(settingsData?.free_shipping_threshold || 0);
     } catch {
-      setError('خطا در بارگذاری سبد خرید');
+      setError('خطا در بارگذاری اطلاعات');
     } finally {
       setLoading(false);
     }
   };
+
+  const subtotal = cart?.total || 0;
+  const isFreeShipping = freeThreshold > 0 && subtotal >= freeThreshold;
+  const finalShipping = isFreeShipping ? 0 : shippingCost;
+  const total = subtotal + finalShipping;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,9 +67,6 @@ export default function CheckoutPage() {
       setSubmitting(false);
     }
   };
-
-  const subtotal = cart?.total || 0;
-  const total = subtotal + SHIPPING_COST;
 
   if (loading) {
     return (
@@ -87,7 +99,6 @@ export default function CheckoutPage() {
       </Link>
 
       <div className="grid lg:grid-cols-3 gap-8">
-        {/* Form */}
         <div className="lg:col-span-2">
           <Reveal>
             <div className="bg-white border border-line rounded-3xl p-6">
@@ -150,7 +161,7 @@ export default function CheckoutPage() {
                   disabled={submitting}
                   className="btn btn-primary w-full text-base disabled:opacity-50"
                 >
-                  {submitting ? 'در حال پردازش...' : `پرداخت ${formatPrice(total)} تومان`}
+                  {submitting ? 'در حال پردازش...' : `پرداخت ${formatPrice(total)} ریال`}
                 </button>
 
                 <div className="flex items-center justify-center gap-2 text-xs text-muted mt-4">
@@ -162,7 +173,6 @@ export default function CheckoutPage() {
           </Reveal>
         </div>
 
-        {/* Summary */}
         <div className="lg:col-span-1">
           <Reveal delay={0.1}>
             <div className="bg-white border border-line rounded-3xl p-6 sticky top-24">
@@ -173,7 +183,7 @@ export default function CheckoutPage() {
                     <span className="text-muted">
                       {item.product_name} × {item.quantity}
                     </span>
-                    <span className="font-bold">{formatPrice(item.subtotal)} تومان</span>
+                    <span className="font-bold">{formatPrice(item.subtotal)} ریال</span>
                   </div>
                 ))}
               </div>
@@ -181,18 +191,29 @@ export default function CheckoutPage() {
               <div className="border-t border-line pt-4 mt-4 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted">جمع سبد خرید</span>
-                  <span className="font-bold">{formatPrice(subtotal)} تومان</span>
+                  <span className="font-bold">{formatPrice(subtotal)} ریال</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted flex items-center gap-1">
                     <Truck size={14} /> هزینه ارسال
                   </span>
-                  <span className="font-bold">{formatPrice(SHIPPING_COST)} تومان</span>
+                  <span className="font-bold">
+                    {isFreeShipping ? (
+                      <span className="text-green-600">رایگان</span>
+                    ) : (
+                      formatPrice(finalShipping) + ' ریال'
+                    )}
+                  </span>
                 </div>
+                {isFreeShipping && (
+                  <div className="text-xs text-green-600 text-center">
+                    🎉 ارسال رایگان برای سفارشات بالای {formatPrice(freeThreshold)} ریال
+                  </div>
+                )}
                 <div className="border-t border-line pt-2 mt-2">
                   <div className="flex justify-between text-lg font-bold">
                     <span>مجموع</span>
-                    <span className="text-brand">{formatPrice(total)} تومان</span>
+                    <span className="text-brand">{formatPrice(total)} ریال</span>
                   </div>
                 </div>
               </div>

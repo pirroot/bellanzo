@@ -1,25 +1,36 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { ArrowLeft, ShieldCheck, Award, Headphones } from "lucide-react";
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { ArrowLeft, ShieldCheck, Award, Headphones } from 'lucide-react';
 
 const icons = { award: Award, shield: ShieldCheck, phone: Headphones };
 const stats = [
-  { icon: "award" as const, value: "+۱۰", label: "سال تجربه" },
-  { icon: "shield" as const, value: "۲۴ ماه", label: "گارانتی" },
-  { icon: "phone" as const, value: "۲۴/۷", label: "پشتیبانی" },
+  { icon: 'award' as const, value: '+۱۰', label: 'سال تجربه' },
+  { icon: 'shield' as const, value: '۲۴ ماه', label: 'گارانتی' },
+  { icon: 'phone' as const, value: '۲۴/۷', label: 'پشتیبانی' },
 ];
 
 export default function HeroClient({
-  badge, line1, line2, subtitle,
+  badge,
+  line1,
+  line2,
+  subtitle,
+  ctaLabel,
+  ctaLink,
 }: {
-  badge: string; line1: string; line2: string; subtitle: string;
+  badge: string;
+  line1: string;
+  line2: string;
+  subtitle: string;
+  ctaLabel: string;
+  ctaLink: string;
 }) {
   return (
     <div>
       <motion.span
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="inline-flex items-center gap-2 bg-brand-soft text-brand font-bold text-sm px-4 py-2 rounded-full"
       >
@@ -28,7 +39,8 @@ export default function HeroClient({
       </motion.span>
 
       <motion.h1
-        initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.1 }}
         className="mt-6 text-4xl md:text-6xl font-black leading-[1.15] text-ink"
       >
@@ -38,7 +50,8 @@ export default function HeroClient({
       </motion.h1>
 
       <motion.p
-        initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.2 }}
         className="mt-6 text-lg text-muted leading-8 max-w-lg"
       >
@@ -46,12 +59,13 @@ export default function HeroClient({
       </motion.p>
 
       <motion.div
-        initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.3 }}
         className="mt-9 flex flex-wrap gap-4"
       >
-        <Link href="/products" className="btn btn-primary">
-          مشاهده محصولات <ArrowLeft size={18} />
+        <Link href={ctaLink} className="btn btn-primary">
+          {ctaLabel} <ArrowLeft size={18} />
         </Link>
         <Link href="/services#new" className="btn btn-outline">
           ثبت درخواست خدمات
@@ -64,7 +78,8 @@ export default function HeroClient({
           return (
             <motion.div
               key={s.label}
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.4 + i * 0.1 }}
               className="text-center"
             >

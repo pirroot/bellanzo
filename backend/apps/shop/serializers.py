@@ -21,7 +21,6 @@ class OrderItemSerializer(serializers.ModelSerializer):
         read_only_fields = ['unit_price']
 
     def get_product_image(self, obj):
-        """دریافت تصویر محصول"""
         if obj.product.image:
             request = self.context.get('request')
             if request:
@@ -30,7 +29,6 @@ class OrderItemSerializer(serializers.ModelSerializer):
         return None
 
     def get_subtotal(self, obj):
-        """محاسبه جمع کل آیتم"""
         return obj.quantity * obj.unit_price
 
 
@@ -53,15 +51,12 @@ class OrderSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'customer', 'ref_id', 'tracking_code', 'created_at', 'updated_at', 'total']
 
     def get_total_items(self, obj):
-        """تعداد کل آیتم‌های سفارش"""
         return obj.items.count()
 
     def create(self, validated_data):
-        """ایجاد سفارش جدید"""
         request = self.context.get('request')
         user = request.user if request and request.user.is_authenticated else None
 
-        # اگر کاربر لاگین است، اطلاعاتش رو بگیر
         if user:
             validated_data['customer'] = user
             if not validated_data.get('full_name'):
@@ -69,46 +64,44 @@ class OrderSerializer(serializers.ModelSerializer):
             if not validated_data.get('phone'):
                 validated_data['phone'] = user.phone
 
-        # محاسبه مبلغ کل از سبد خرید
         cart = request.user.cart if user and hasattr(user, 'cart') else None
         if cart:
-            total = cart.total
-            validated_data['total'] = total
+            validated_data['total'] = cart.total
 
         return super().create(validated_data)
 
 
 class CreateOrderSerializer(serializers.Serializer):
-    """سریالایزر برای ایجاد سفارش جدید از سبد خرید"""
     full_name = serializers.CharField(max_length=120, required=True)
     phone = serializers.CharField(max_length=20, required=True)
     address = serializers.CharField(required=True, style={'base_template': 'textarea.html'})
     postal_code = serializers.CharField(max_length=20, required=False, allow_blank=True)
 
     def validate_phone(self, value):
-        """اعتبارسنجی شماره موبایل"""
         if not value.startswith('09') or len(value) != 11:
             raise serializers.ValidationError("شماره موبایل باید با 09 شروع و 11 رقم باشد")
         return value
 
 
 class CartItemSerializer(serializers.ModelSerializer):
-    """سریالایزر آیتم‌های سبد خرید"""
+    """سریالایزر آیتم‌های سبد خرید با تخفیف"""
     product_name = serializers.CharField(source='product.name', read_only=True)
     product_price = serializers.IntegerField(source='product.price', read_only=True)
+    product_discount_price = serializers.IntegerField(source='product.discount_price', read_only=True)
     product_image = serializers.SerializerMethodField()
     subtotal = serializers.SerializerMethodField()
+    max_stock = serializers.IntegerField(source='product.stock', read_only=True)
 
     class Meta:
         model = CartItem
         fields = [
             'id', 'product', 'product_name', 'product_price',
-            'product_image', 'quantity', 'subtotal'
+            'product_discount_price', 'product_image', 'quantity',
+            'subtotal', 'max_stock'
         ]
         read_only_fields = ['subtotal']
 
     def get_product_image(self, obj):
-        """دریافت تصویر محصول"""
         if obj.product.image:
             request = self.context.get('request')
             if request:
@@ -117,12 +110,13 @@ class CartItemSerializer(serializers.ModelSerializer):
         return None
 
     def get_subtotal(self, obj):
-        """محاسبه جمع کل آیتم"""
-        return obj.quantity * obj.product.price
+        """محاسبه قیمت نهایی با تخفیف"""
+        price = obj.product.discount_price if obj.product.discount_price > 0 else obj.product.price
+        return obj.quantity * price
 
 
 class CartSerializer(serializers.ModelSerializer):
-    """سریالایزر سبد خرید"""
+    """سریالایزر سبد خرید با تخفیف"""
     items = CartItemSerializer(many=True, read_only=True)
     total = serializers.SerializerMethodField()
     items_count = serializers.SerializerMethodField()
@@ -133,22 +127,22 @@ class CartSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def get_total(self, obj):
-        """مجموع قیمت سبد خرید"""
-        return obj.total
+        """مجموع قیمت سبد خرید با تخفیف"""
+        total = 0
+        for item in obj.items.all():
+            price = item.product.discount_price if item.product.discount_price > 0 else item.product.price
+            total += item.quantity * price
+        return total
 
     def get_items_count(self, obj):
-        """تعداد آیتم‌های سبد خرید"""
         return obj.items_count
 
 
 class AddToCartSerializer(serializers.Serializer):
-    """سریالایزر برای اضافه کردن به سبد خرید"""
     product_id = serializers.IntegerField(required=True)
     quantity = serializers.IntegerField(required=False, min_value=1, default=1)
 
-
     def validate_product_id(self, value):
-        """اعتبارسنجی محصول"""
         try:
             Product.objects.get(id=value)
         except Product.DoesNotExist:
@@ -156,14 +150,12 @@ class AddToCartSerializer(serializers.Serializer):
         return value
 
     def validate_quantity(self, value):
-        """اعتبارسنجی تعداد"""
         if value < 1:
             raise serializers.ValidationError("تعداد باید حداقل 1 باشد")
         return value
 
 
 class PaymentSerializer(serializers.ModelSerializer):
-    """سریالایزر پرداخت"""
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     gateway_display = serializers.CharField(source='get_gateway_display', read_only=True)
 
@@ -178,19 +170,16 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 
 class PaymentVerifySerializer(serializers.Serializer):
-    """سریالایزر برای تایید پرداخت"""
     order_id = serializers.IntegerField(required=True)
     authority = serializers.CharField(max_length=64, required=True)
     status = serializers.CharField(max_length=20, required=True)
 
 
 class OrderStatusUpdateSerializer(serializers.Serializer):
-    """سریالایزر برای تغییر وضعیت سفارش (ادمین)"""
     status = serializers.ChoiceField(choices=Order.Status.choices, required=True)
     tracking_code = serializers.CharField(max_length=64, required=False, allow_blank=True)
 
     def validate_status(self, value):
-        """اعتبارسنجی وضعیت"""
         valid_statuses = [choice[0] for choice in Order.Status.choices]
         if value not in valid_statuses:
             raise serializers.ValidationError("وضعیت نامعتبر است")
@@ -198,7 +187,6 @@ class OrderStatusUpdateSerializer(serializers.Serializer):
 
 
 class OrderListSerializer(serializers.ModelSerializer):
-    """سریالایزر برای لیست سفارشات (خلاصه)"""
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     items_count = serializers.SerializerMethodField()
 
@@ -210,5 +198,4 @@ class OrderListSerializer(serializers.ModelSerializer):
         ]
 
     def get_items_count(self, obj):
-        """تعداد آیتم‌های سفارش"""
         return obj.items.count()

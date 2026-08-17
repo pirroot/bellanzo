@@ -24,6 +24,16 @@ class SiteSetting(models.Model):
     hero_subtitle = models.TextField('متن توضیح هیرو', blank=True, default='محصولاتی که می‌توانید به آن‌ها اعتماد کنید، در کنار خدمات پس از فروشی که خیال شما را راحت می‌کند.')
     hero_bg_image = models.ImageField('عکس بک‌گراند هیرو', upload_to='hero/', blank=True, null=True)
     hero_product_image = models.ImageField('عکس محصول هیرو', upload_to='hero/', blank=True, null=True)
+    hero_cta_label = models.CharField('متن دکمه هیرو', max_length=60, blank=True)
+    hero_cta_link = models.CharField('لینک دکمه هیرو', max_length=200, blank=True)
+
+    # Shipping & E-commerce
+    shipping_cost = models.PositiveIntegerField('هزینه ارسال (ریال)', default=50000)
+    free_shipping_threshold = models.PositiveIntegerField(
+        'ارسال رایگان برای سفارشات بالای (ریال)',
+        default=0,
+        help_text='اگر ۰ باشد، ارسال رایگان فعال نیست.'
+    )
 
     maintenance_mode = models.BooleanField('حالت تعمیر (فقط خدمات)', default=False)
 

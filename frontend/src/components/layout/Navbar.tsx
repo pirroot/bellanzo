@@ -61,6 +61,15 @@ export default function Navbar() {
     }
   }, [isLoggedIn, pathname]);
 
+  // Listen for cart-updated event
+  useEffect(() => {
+    const handleCartUpdate = () => {
+      if (isLoggedIn) fetchCartCount();
+    };
+    window.addEventListener('cart-updated', handleCartUpdate);
+    return () => window.removeEventListener('cart-updated', handleCartUpdate);
+  }, [isLoggedIn]);
+
   const fetchCartCount = async () => {
     try {
       const cart = await apiFetch<Cart>('/cart/', { auth: true });
@@ -76,6 +85,7 @@ export default function Navbar() {
     localStorage.removeItem('user');
     setIsLoggedIn(false);
     setUserMenuOpen(false);
+    setCartCount(0);
     router.push('/');
   };
 
@@ -89,7 +99,7 @@ export default function Navbar() {
           : 'bg-transparent'
       }`}
     >
-      <nav className="container-x flex items-center justify-between h-[88px]">
+      <nav className="container-x flex items-center justify-between h-22">
         {/* Logo */}
         <Link href="/" className="flex items-center">
           <Image

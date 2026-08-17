@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import Reveal from '@/components/ui/Reveal';
+import { apiFetch, getOrderHistory } from '@/lib/api';
+import type { Order } from '@/lib/types';
+import { Edit2, LogOut, Package, Save, User, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { getOrderHistory } from '@/lib/api';
-import type { Order } from '@/lib/types';
-import { Package, ShoppingBag, User, LogOut, Edit2, Save, X } from 'lucide-react';
-import Reveal from '@/components/ui/Reveal';
-import { apiFetch } from '@/lib/api';
+import { useEffect, useState } from 'react';
 
 const statusColors: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -216,7 +215,7 @@ export default function ProfilePage() {
                       <span className="text-muted">
                         {new Date(order.created_at).toLocaleDateString('fa-IR')}
                       </span>
-                      <span className="font-bold">{order.total.toLocaleString()} تومان</span>
+                      <span className="font-bold">{order.total.toLocaleString()} ریال</span>
                     </div>
                   </div>
                 </Link>

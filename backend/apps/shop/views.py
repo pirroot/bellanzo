@@ -18,23 +18,19 @@ User = get_user_model()
 
 
 class CartViewSet(viewsets.ViewSet):
-    """مدیریت سبد خرید"""
     permission_classes = [IsAuthenticated]
 
     def get_cart(self, request):
-        """دریافت یا ایجاد سبد خرید کاربر"""
         cart, created = Cart.objects.get_or_create(user=request.user)
         return cart
 
     def list(self, request):
-        """مشاهده سبد خرید"""
         cart = self.get_cart(request)
         serializer = CartSerializer(cart, context={'request': request})
         return Response(serializer.data)
 
     @action(detail=False, methods=['post'])
     def add(self, request):
-        """اضافه کردن محصول به سبد خرید"""
         serializer = AddToCartSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -45,7 +41,6 @@ class CartViewSet(viewsets.ViewSet):
         product = get_object_or_404(Product, id=product_id)
         cart = self.get_cart(request)
 
-        # بررسی وجود محصول در سبد
         cart_item, created = CartItem.objects.get_or_create(
             cart=cart,
             product=product,
@@ -64,7 +59,6 @@ class CartViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'])
     def remove(self, request):
-        """حذف محصول از سبد خرید"""
         product_id = request.data.get('product_id')
         if not product_id:
             return Response(
@@ -86,7 +80,6 @@ class CartViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'])
     def update_quantity(self, request):
-        """تغییر تعداد محصول در سبد خرید"""
         product_id = request.data.get('product_id')
         quantity = request.data.get('quantity')
 
@@ -118,6 +111,13 @@ class CartViewSet(viewsets.ViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
 
+        # Check stock
+        if quantity > cart_item.product.stock:
+            return Response(
+                {'error': f'فقط {cart_item.product.stock} عدد موجود است'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         if quantity == 0:
             cart_item.delete()
             return Response({'message': 'محصول از سبد خرید حذف شد'}, status=status.HTTP_200_OK)
@@ -133,14 +133,12 @@ class CartViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'])
     def clear(self, request):
-        """خالی کردن سبد خرید"""
         cart = self.get_cart(request)
         cart.clear()
         return Response({'message': 'سبد خرید خالی شد'}, status=status.HTTP_200_OK)
 
 
 class OrderViewSet(viewsets.ReadOnlyModelViewSet):
-    """مدیریت سفارشات"""
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -156,7 +154,6 @@ class OrderViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['post'])
     def create_order(self, request):
-        """ایجاد سفارش جدید از سبد خرید"""
         serializer = CreateOrderSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -171,7 +168,6 @@ class OrderViewSet(viewsets.ReadOnlyModelViewSet):
             )
 
         with transaction.atomic():
-            # ایجاد سفارش
             order = Order.objects.create(
                 customer=user,
                 full_name=serializer.validated_data['full_name'],
@@ -181,16 +177,17 @@ class OrderViewSet(viewsets.ReadOnlyModelViewSet):
                 total=cart.total
             )
 
-            # ایجاد آیتم‌های سفارش
+            # ایجاد آیتم‌های سفارش با قیمت تخفیف‌خورده
             for cart_item in cart.items.all():
+                # قیمت نهایی: اگر تخفیف داره از discount_price استفاده کن
+                unit_price = cart_item.product.discount_price if cart_item.product.discount_price > 0 else cart_item.product.price
                 OrderItem.objects.create(
                     order=order,
                     product=cart_item.product,
                     quantity=cart_item.quantity,
-                    unit_price=cart_item.product.price
+                    unit_price=unit_price
                 )
 
-            # خالی کردن سبد خرید
             cart.clear()
 
         order_serializer = OrderSerializer(order, context={'request': request})
@@ -198,7 +195,6 @@ class OrderViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=True, methods=['post'])
     def cancel(self, request, pk=None):
-        """لغو سفارش"""
         order = self.get_object()
 
         if order.status != Order.Status.PENDING:
@@ -217,20 +213,15 @@ class OrderViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=True, methods=['get'])
     def payment(self, request, pk=None):
-        """دریافت اطلاعات پرداخت سفارش"""
         order = self.get_object()
-
-        # چک کردن پرداخت موجود
         payment = Payment.objects.filter(order=order).first()
         if payment:
             serializer = PaymentSerializer(payment)
             return Response(serializer.data)
-
         return Response({'error': 'پرداختی برای این سفارش یافت نشد'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class OrderHistoryView(generics.ListAPIView):
-    """مشاهده تاریخچه سفارشات کاربر"""
     permission_classes = [IsAuthenticated]
     serializer_class = OrderListSerializer
 
@@ -239,12 +230,10 @@ class OrderHistoryView(generics.ListAPIView):
 
 
 class PaymentViewSet(viewsets.ViewSet):
-    """مدیریت پرداخت‌ها"""
     permission_classes = [IsAuthenticated]
 
     @action(detail=False, methods=['post'])
     def initiate(self, request):
-        """شروع فرآیند پرداخت"""
         order_id = request.data.get('order_id')
         if not order_id:
             return Response(
@@ -260,8 +249,6 @@ class PaymentViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # اینجا باید به درگاه پرداخت متصل بشه
-        # فعلاً یک پاسخ نمونه برمیگردونیم
         return Response({
             'message': 'درگاه پرداخت آماده است',
             'order_id': order.id,
@@ -271,7 +258,6 @@ class PaymentViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'])
     def verify(self, request):
-        """تایید پرداخت"""
         serializer = PaymentVerifySerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -287,9 +273,6 @@ class PaymentViewSet(viewsets.ViewSet):
                 'error': 'پرداخت ناموفق بود',
                 'status': status_param
             }, status=status.HTTP_400_BAD_REQUEST)
-
-        # اینجا باید تایید پرداخت از درگاه انجام بشه
-        # فعلاً یک پاسخ نمونه برمیگردونیم
 
         with transaction.atomic():
             order.status = Order.Status.PAID
@@ -311,7 +294,6 @@ class PaymentViewSet(viewsets.ViewSet):
 
 
 class AdminOrderViewSet(viewsets.ModelViewSet):
-    """مدیریت سفارشات برای ادمین"""
     permission_classes = [IsAuthenticated]
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
@@ -322,7 +304,6 @@ class AdminOrderViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def update(self, request, *args, **kwargs):
-        """بروزرسانی سفارش (فقط وضعیت)"""
         order = self.get_object()
         serializer = OrderStatusUpdateSerializer(data=request.data)
 
@@ -342,5 +323,4 @@ class AdminOrderViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def update_status(self, request, pk=None):
-        """تغییر وضعیت سفارش (ادمین)"""
         return self.update(request, pk=pk)

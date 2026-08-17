@@ -30,8 +30,10 @@ class Product(models.Model):
     slug = models.SlugField('اسلاگ', unique=True, allow_unicode=True)
     short_description = models.CharField('توضیح کوتاه', max_length=300, blank=True)
     description = models.TextField('توضیحات کامل', blank=True)
+    discount_price = models.PositiveIntegerField('قیمت تخفیف‌خورده (ریال)', default=0)
     image = models.ImageField('تصویر اصلی', upload_to='products/', blank=True, null=True)
     features = models.JSONField('ویژگی‌ها', default=list, blank=True)
+    stock = models.PositiveIntegerField('موجودی', default=0)
 
     # Reserved for phase 2 (shop). Unused in showcase mode.
     price = models.DecimalField('قیمت', max_digits=12, decimal_places=0, default=0)

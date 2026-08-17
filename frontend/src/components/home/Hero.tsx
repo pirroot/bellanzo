@@ -1,22 +1,26 @@
-import Link from "next/link";
-import Image from "next/image";
-import { ShieldCheck, Award, Headphones } from "lucide-react";
-import { serverFetch, mediaUrl } from "@/lib/api";
-import type { SiteSettings } from "@/lib/types";
-import HeroClient from "./HeroClient";
+import Link from 'next/link';
+import Image from 'next/image';
+import { ShieldCheck, Award, Headphones } from 'lucide-react';
+import { serverFetch, mediaUrl } from '@/lib/api';
+import type { SiteSettings } from '@/lib/types';
+import HeroClient from './HeroClient';
 
 const stats = [
-  { icon: "award", value: "+۱۰", label: "سال تجربه" },
-  { icon: "shield", value: "۲۴ ماه", label: "گارانتی" },
-  { icon: "phone", value: "۲۴/۷", label: "پشتیبانی" },
+  { icon: 'award', value: '+۱۰', label: 'سال تجربه' },
+  { icon: 'shield', value: '۲۴ ماه', label: 'گارانتی' },
+  { icon: 'phone', value: '۲۴/۷', label: 'پشتیبانی' },
 ];
 
 export default async function Hero() {
-  const settings = await serverFetch<SiteSettings>("/settings/");
-  const badge = settings?.hero_badge || "برند مورد اعتماد شما";
-  const line1 = settings?.hero_title_line1 || "تجربه‌ای نو از";
-  const line2 = settings?.hero_title_line2 || "کیفیت و خدمات";
-  const subtitle = settings?.hero_subtitle || "محصولاتی که می‌توانید به آن‌ها اعتماد کنید، در کنار خدمات پس از فروشی که خیال شما را راحت می‌کند.";
+  const settings = await serverFetch<SiteSettings>('/settings/');
+  const badge = settings?.hero_badge || 'برند مورد اعتماد شما';
+  const line1 = settings?.hero_title_line1 || 'تجربه‌ای نو از';
+  const line2 = settings?.hero_title_line2 || 'کیفیت و خدمات';
+  const subtitle =
+    settings?.hero_subtitle ||
+    'محصولاتی که می‌توانید به آن‌ها اعتماد کنید، در کنار خدمات پس از فروشی که خیال شما را راحت می‌کند.';
+  const ctaLabel = settings?.hero_cta_label || 'مشاهده محصولات';
+  const ctaLink = settings?.hero_cta_link || '/products';
   const bgImage = settings?.hero_bg_image ? mediaUrl(settings.hero_bg_image) : null;
   const productImage = settings?.hero_product_image ? mediaUrl(settings.hero_product_image) : null;
 
@@ -24,7 +28,6 @@ export default async function Hero() {
     <section className="relative overflow-hidden pt-32 pb-20 md:pt-40 md:pb-28">
       {/* Background */}
       {bgImage ? (
-        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={bgImage}
           alt=""
@@ -39,13 +42,19 @@ export default async function Hero() {
 
       <div className="container-x relative grid lg:grid-cols-2 gap-14 items-center">
         {/* Text */}
-        <HeroClient badge={badge} line1={line1} line2={line2} subtitle={subtitle} />
+        <HeroClient
+          badge={badge}
+          line1={line1}
+          line2={line2}
+          subtitle={subtitle}
+          ctaLabel={ctaLabel}
+          ctaLink={ctaLink}
+        />
 
         {/* Product image */}
         <div className="relative flex items-center justify-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={productImage ?? "/Mat.png"}
+            src={productImage ?? '/Mat.png'}
             alt="محصولات بلانزو"
             className="w-full h-auto object-contain drop-shadow-2xl"
           />

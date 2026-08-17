@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Phone, MapPin, Clock, Building2 } from 'lucide-react';
 import Reveal from '@/components/ui/Reveal';
+import FAQComponent from '@/components/faq/FAQComponent';
 
 export const metadata: Metadata = {
   title: 'درباره و تماس با ما',
@@ -60,7 +61,7 @@ export default function ContactPage() {
   return (
     <>
       {/* Company Introduction */}
-      <section className="container-x py-16">
+      <section className="container-x py-16 mt-20">
         <Reveal>
           <div className="max-w-4xl mx-auto bg-white rounded-3xl border border-line p-8 md:p-12">
             <h1 className="text-2xl md:text-3xl font-black text-ink mb-8">معرفی شرکت بلانزو</h1>
@@ -86,6 +87,8 @@ export default function ContactPage() {
           </div>
         </Reveal>
       </section>
+
+      {/* <FAQComponent /> */}
 
       {/* Contact Info */}
       <section className="bg-surface">

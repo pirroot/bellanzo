@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { API_BASE, apiFetch } from '@/lib/api';
+import { ImageIcon, Loader2, Package, Plus, Save, Tag, Trash2, X } from 'lucide-react';
 import Image from 'next/image';
-import { Loader2, Plus, X, Save, Trash2, ImageIcon, Package, Tag } from 'lucide-react';
-import { apiFetch, API_BASE } from '@/lib/api';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
 
 interface CategorySubItem {
   name: string;
@@ -34,6 +34,8 @@ interface Product {
   features: string[];
   price: number;
   is_purchasable: boolean;
+  stock: number;
+  discount_price: number;
 }
 const field =
   'w-full rounded-xl border border-line bg-white px-4 py-3 outline-none focus:border-brand transition-colors text-sm';
@@ -49,6 +51,8 @@ const EMPTY_PRODUCT: Partial<Product> = {
   features: [],
   price: 0,
   is_purchasable: false,
+  stock: 0,
+  discount_price: 0,
 };
 const EMPTY_CAT: Partial<Category> = {
   name: '',
@@ -81,7 +85,6 @@ export default function ProductsAdmin() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
 
-  // Selection state
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
 
@@ -114,11 +117,9 @@ export default function ProductsAdmin() {
   }, [router]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
   }, [load]);
 
-  // --- selection helpers ---
   const currentList = tab === 'products' ? products : cats;
   const allSelected = currentList.length > 0 && selectedIds.size === currentList.length;
   const someSelected = selectedIds.size > 0;
@@ -187,7 +188,6 @@ export default function ProductsAdmin() {
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="flex gap-2 mb-6">
         <button
           onClick={() => {
@@ -250,6 +250,8 @@ export default function ProductsAdmin() {
                   <th className="text-right p-3 font-bold hidden sm:table-cell">تصویر</th>
                   <th className="text-right p-3 font-bold">نام</th>
                   <th className="text-right p-3 font-bold hidden sm:table-cell">دسته‌بندی</th>
+                  <th className="text-right p-3 font-bold">قیمت</th>
+                  <th className="text-right p-3 font-bold hidden sm:table-cell">موجودی</th>
                   <th className="text-right p-3 font-bold">وضعیت</th>
                   <th className="text-right p-3 font-bold hidden sm:table-cell">ویژه</th>
                 </tr>
@@ -312,6 +314,35 @@ export default function ProductsAdmin() {
                         }}
                       >
                         {p.category_name || '—'}
+                      </td>
+                      <td
+                        className="p-3 font-bold"
+                        onClick={() => {
+                          setSelectedProduct({ ...p });
+                          setIsNewProduct(false);
+                        }}
+                      >
+                        {p.discount_price > 0 ? (
+                          <div>
+                            <span className="text-xs line-through text-muted">
+                              {p.price.toLocaleString()}
+                            </span>
+                            <span className="text-brand block">
+                              {p.discount_price.toLocaleString()}
+                            </span>
+                          </div>
+                        ) : (
+                          <span>{p.price.toLocaleString()}</span>
+                        )}
+                      </td>
+                      <td
+                        className="p-3 hidden sm:table-cell"
+                        onClick={() => {
+                          setSelectedProduct({ ...p });
+                          setIsNewProduct(false);
+                        }}
+                      >
+                        {p.stock}
                       </td>
                       <td
                         className="p-3"
@@ -516,6 +547,8 @@ function ProductDrawer({
       fd.append('is_active', String(form.is_active !== false));
       fd.append('price', String(form.price || 0));
       fd.append('is_purchasable', String(!!form.is_purchasable));
+      fd.append('stock', String(form.stock || 0));
+      fd.append('discount_price', String(form.discount_price || 0));
       fd.append(
         'features',
         JSON.stringify(
@@ -563,7 +596,6 @@ function ProductDrawer({
           </button>
         </div>
 
-        {/* Image upload */}
         <div>
           <label className="block text-sm font-bold text-ink-soft mb-2">تصویر محصول</label>
           <label className="cursor-pointer block">
@@ -667,15 +699,39 @@ function ProductDrawer({
             value={featuresText}
             onChange={(e) => setFeaturesText(e.target.value)}
             rows={4}
-            placeholder={'مثلاً:\nتوان ۱۵۰۰ وات\nظرفیت ۵ لیتر'}
+            placeholder="مثلاً:&#10;توان ۱۵۰۰ وات&#10;ظرفیت ۵ لیتر"
             className={field}
           />
         </div>
 
-        {/* Price & Purchasable */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-bold text-ink-soft mb-2">قیمت (تومان)</label>
+            <label className="block text-sm font-bold text-ink-soft mb-2">موجودی</label>
+            <input
+              type="number"
+              value={form.stock || ''}
+              onChange={(e) => set('stock', Number(e.target.value))}
+              className={field}
+              dir="ltr"
+              placeholder="۰"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-ink-soft mb-2">قیمت تخفیف‌خورده</label>
+            <input
+              type="number"
+              value={form.discount_price || ''}
+              onChange={(e) => set('discount_price', Number(e.target.value))}
+              className={field}
+              dir="ltr"
+              placeholder="۰ (بدون تخفیف)"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-bold text-ink-soft mb-2">قیمت (ریال)</label>
             <input
               type="number"
               value={form.price || ''}
@@ -703,7 +759,6 @@ function ProductDrawer({
           </div>
         </div>
 
-        {/* Featured toggle */}
         <label
           className={`flex items-center justify-between gap-3 rounded-2xl border-2 p-4 cursor-pointer transition-colors ${form.is_featured ? 'border-amber-400 bg-amber-50' : 'border-line bg-surface'}`}
         >
@@ -721,7 +776,6 @@ function ProductDrawer({
           />
         </label>
 
-        {/* Active toggle */}
         <label
           className={`flex items-center justify-between gap-3 rounded-2xl border-2 p-4 cursor-pointer transition-colors ${form.is_active !== false ? 'border-green-400 bg-green-50' : 'border-line bg-surface'}`}
         >
@@ -861,7 +915,6 @@ function CategoryDrawer({
           </button>
         </div>
 
-        {/* Image upload */}
         <div>
           <label className="block text-sm font-bold text-ink-soft mb-2">تصویر دسته‌بندی</label>
           <label className="cursor-pointer block">
@@ -943,7 +996,6 @@ function CategoryDrawer({
           />
         </div>
 
-        {/* Sub items */}
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="text-sm font-bold text-ink-soft">زیرمنوها (نمایش در hover)</label>

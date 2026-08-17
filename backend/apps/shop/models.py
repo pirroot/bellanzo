@@ -61,11 +61,9 @@ class Order(models.Model):
         return f'Order #{self.pk} - {self.full_name}'
 
     def get_total_items(self):
-        """تعداد کل آیتم‌های سفارش"""
         return self.items.count()
 
     def get_total_quantity(self):
-        """تعداد کل محصولات سفارش"""
         return sum(item.quantity for item in self.items.all())
 
 
@@ -101,7 +99,6 @@ class OrderItem(models.Model):
 
     @property
     def subtotal(self):
-        """جمع کل این آیتم"""
         return self.quantity * self.unit_price
 
 
@@ -125,16 +122,19 @@ class Cart(models.Model):
 
     @property
     def total(self):
-        """مجموع قیمت سبد خرید"""
-        return sum(item.subtotal for item in self.items.all())
+        """مجموع قیمت سبد خرید با احتساب تخفیف"""
+        total = 0
+        for item in self.items.all():
+            # قیمت نهایی: اگر تخفیف داره از discount_price استفاده کن
+            price = item.product.discount_price if item.product.discount_price > 0 else item.product.price
+            total += item.quantity * price
+        return total
 
     @property
     def items_count(self):
-        """تعداد آیتم‌های سبد خرید"""
         return self.items.count()
 
     def clear(self):
-        """خالی کردن سبد خرید"""
         self.items.all().delete()
 
 
@@ -159,23 +159,22 @@ class CartItem(models.Model):
     class Meta:
         verbose_name = 'آیتم سبد خرید'
         verbose_name_plural = 'آیتم‌های سبد خرید'
-        unique_together = ['cart', 'product']  # هر محصول فقط یک بار در سبد
+        unique_together = ['cart', 'product']
 
     def __str__(self):
         return f'{self.product.name} x{self.quantity}'
 
     @property
     def subtotal(self):
-        """جمع کل این آیتم"""
-        return self.quantity * self.product.price
+        """قیمت نهایی با تخفیف"""
+        price = self.product.discount_price if self.product.discount_price > 0 else self.product.price
+        return self.quantity * price
 
     def increase(self, quantity=1):
-        """افزایش تعداد"""
         self.quantity += quantity
         self.save()
 
     def decrease(self, quantity=1):
-        """کاهش تعداد"""
         if self.quantity > quantity:
             self.quantity -= quantity
             self.save()
@@ -184,7 +183,6 @@ class CartItem(models.Model):
 
 
 class Payment(models.Model):
-    """مدیریت تراکنش‌های پرداخت"""
     class Status(models.TextChoices):
         PENDING = 'pending', 'در انتظار'
         SUCCESS = 'success', 'موفق'
