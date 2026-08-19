@@ -8,4 +8,5 @@ router.register('hero-slides', HeroSlideViewSet, basename='hero-slide')
 
 urlpatterns = [
     path('settings/', SiteSettingView.as_view(), name='site-settings'),
+
 ] + router.urls

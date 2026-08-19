@@ -54,3 +54,5 @@ class HeroSlideViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = HeroSlideSerializer
     permission_classes = [AllowAny]
     pagination_class = None
+
+

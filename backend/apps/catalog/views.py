@@ -26,13 +26,11 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    lookup_field = 'slug'  # changed from 'pk' to 'slug'
+    lookup_field = 'slug'
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'short_description', 'description']
     ordering_fields = ['created_at', 'name', 'price']
     ordering = ['-created_at']
-
-
 
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
@@ -40,11 +38,26 @@ class ProductViewSet(viewsets.ModelViewSet):
         return [IsAdminUser()]
 
     def get_queryset(self):
-        # Admin sees all products; public sees only active ones
+        # Admin sees all products
         if self.request.user and self.request.user.is_staff:
             qs = Product.objects.all().select_related('category')
         else:
-            qs = Product.objects.filter(is_active=True).select_related('category')
+            # Check if we're filtering for spare parts page
+            is_spare_part_filter = self.request.query_params.get('is_spare_part')
+
+            if is_spare_part_filter is not None and is_spare_part_filter.lower() == 'true':
+                # Spare parts page: show ALL spare parts
+                qs = Product.objects.filter(
+                    is_active=True,
+                    is_spare_part=True
+                ).select_related('category')
+            else:
+                # Products page: regular products + spare parts with show_in_products=True
+                qs = Product.objects.filter(
+                    is_active=True
+                ).filter(
+                    Q(is_spare_part=False) | Q(is_spare_part=True, show_in_products=True)
+                ).select_related('category')
 
         # Filter by category slug
         category = self.request.query_params.get('category')

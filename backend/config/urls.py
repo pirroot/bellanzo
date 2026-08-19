@@ -13,8 +13,11 @@ api_patterns = [
     path('', include('apps.agencies.urls')),
     path('', include('apps.shop.urls')),
     path('', include('apps.accounts.urls')),
+    path('', include('apps.faq.urls')),
+    path('', include('apps.blog.urls')),
     path('auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
 ]
 
 urlpatterns = [

@@ -11,12 +11,12 @@ import ProductImage from '@/components/products/ProductImage';
 import ProductCard from '@/components/ProductCard';
 
 type Props = {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params;
-  const product = await serverFetch<Product>(`/products/${id}/`);
+  const { slug } = await params;
+  const product = await serverFetch<Product>(`/products/${slug}/`);
 
   if (!product) {
     return {
@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: product.name,
       description:
         product.short_description || product.description || `خرید ${product.name} با کیفیت بالا`,
-      url: `https://bellanzo-home.ir/products/${id}`,
+      url: `https://bellanzo-home.ir/products/${slug}`,
       images: product.image
         ? [
             {
@@ -67,8 +67,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductDetail({ params }: Props) {
-  const { id } = await params;
-  const product = await serverFetch<Product>(`/products/${id}/`);
+  const { slug } = await params;
+  const product = await serverFetch<Product>(`/products/${slug}/`);
 
   if (!product) notFound();
 
@@ -85,6 +85,15 @@ export default async function ProductDetail({ params }: Props) {
       `/products/?category=${cat.slug}&exclude=${product.id}`
     );
     similarProducts = similarData?.results?.slice(0, 4) || [];
+  }
+
+  // Fetch related spare parts (same category, is_spare_part=true)
+  let relatedParts: Product[] = [];
+  if (cat && cat.id) {
+    const partsData = await serverFetch<{ results: Product[] }>(
+      `/products/?category=${cat.slug}&is_spare_part=true&exclude=${product.id}`
+    );
+    relatedParts = partsData?.results?.slice(0, 4) || [];
   }
 
   return (
@@ -141,6 +150,25 @@ export default async function ProductDetail({ params }: Props) {
             </Reveal>
           </div>
 
+          {/* Related Spare Parts */}
+          {relatedParts.length > 0 && (
+            <div className="mt-20">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-black text-ink flex items-center gap-2">
+                  <span>🔧</span> قطعات یدکی مرتبط
+                </h2>
+                <Link href="/spare-parts" className="text-sm text-brand hover:underline font-bold">
+                  مشاهده همه قطعات
+                </Link>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {relatedParts.map((p) => (
+                  <ProductCard key={p.id} product={p} />
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Similar Products */}
           {similarProducts.length > 0 && (
             <div className="mt-20">
@@ -175,15 +203,15 @@ export default async function ProductDetail({ params }: Props) {
                   {hasDiscount ? (
                     <div>
                       <span className="text-sm line-through text-muted">
-                        {formatPrice(product.price)} ریال
+                        {formatPrice(product.price)}
                       </span>
                       <div className="text-2xl font-black text-brand">
-                        {formatPrice(product.discount_price)} ریال
+                        {formatPrice(product.discount_price)}
                       </div>
                     </div>
                   ) : (
                     <div className="text-2xl font-black text-brand">
-                      {formatPrice(product.price)} ریال
+                      {formatPrice(product.price)}
                     </div>
                   )}
                 </div>

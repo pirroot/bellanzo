@@ -53,7 +53,7 @@ export default async function ProductsPage({
     serverFetch<Category[]>('/categories/'),
     serverFetch<Paginated<Product>>(`/products/?${query.toString()}`),
   ]);
-  
+
   return (
     <>
       <ProductsClient

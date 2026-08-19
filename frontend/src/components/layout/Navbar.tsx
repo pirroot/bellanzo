@@ -12,8 +12,10 @@ import type { Cart } from '@/lib/types';
 const links = [
   { href: '/', label: 'خانه' },
   { href: '/products', label: 'محصولات' },
+  { href: '/spare-parts', label: 'قطعات یدکی' },
   { href: '/services', label: 'خدمات پس از فروش' },
   { href: '/agencies', label: 'نمایندگی‌ها' },
+  { href: '/blog', label: 'وبلاگ' },
   { href: '/contact', label: 'درباره و تماس با ما' },
 ];
 
@@ -99,28 +101,28 @@ export default function Navbar() {
           : 'bg-transparent'
       }`}
     >
-      <nav className="container-x flex items-center justify-between h-22">
+      <nav className="container-x flex items-center justify-between h-16 md:h-22">
         {/* Logo */}
-        <Link href="/" className="flex items-center">
+        <Link href="/" className="flex items-center shrink-0">
           <Image
             src="/bellanzo-logo.png"
             alt="بلانزو"
-            width={220}
-            height={72}
-            className="h-16 w-auto object-contain rounded-lg"
+            width={180}
+            height={56}
+            className="h-12 md:h-16 w-auto object-contain"
             priority
           />
         </Link>
 
         {/* Desktop links */}
-        <ul className="hidden md:flex items-center gap-1">
+        <ul className="hidden lg:flex items-center gap-1">
           {links.map((l) => {
             const active = pathname === l.href;
             return (
               <li key={l.href}>
                 <Link
                   href={l.href}
-                  className={`relative px-4 py-2 text-sm font-bold rounded-full transition-colors ${
+                  className={`relative px-3 py-2 text-sm font-bold rounded-full transition-colors whitespace-nowrap ${
                     active
                       ? 'text-brand'
                       : scrolled
@@ -142,15 +144,15 @@ export default function Navbar() {
         </ul>
 
         {/* Right side: Cart + User + Service Button */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden lg:flex items-center gap-2 xl:gap-3">
           {/* Cart */}
           <Link
             href="/cart"
-            className="relative w-10 h-10 rounded-full flex items-center justify-center hover:bg-brand-soft transition-colors"
+            className="relative w-9 h-9 xl:w-10 xl:h-10 rounded-full flex items-center justify-center hover:bg-brand-soft transition-colors"
           >
             <ShoppingBag size={20} className={scrolled ? 'text-ink' : 'text-gray-500'} />
             {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-brand text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+              <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-brand text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                 {cartCount > 9 ? '9+' : cartCount}
               </span>
             )}
@@ -161,7 +163,7 @@ export default function Navbar() {
             <div className="relative">
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="w-10 h-10 rounded-full bg-brand/10 flex items-center justify-center hover:bg-brand/20 transition-colors"
+                className="w-9 h-9 xl:w-10 xl:h-10 rounded-full bg-brand/10 flex items-center justify-center hover:bg-brand/20 transition-colors"
               >
                 <User size={20} className="text-brand" />
               </button>
@@ -172,10 +174,10 @@ export default function Navbar() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="absolute left-0 top-12 w-56 bg-white border border-line rounded-2xl shadow-xl overflow-hidden"
+                    className="absolute left-0 top-11 xl:top-12 w-56 bg-white border border-line rounded-2xl shadow-xl overflow-hidden z-50"
                   >
                     <div className="p-3 border-b border-line">
-                      <p className="text-sm font-bold">{userName || 'کاربر'}</p>
+                      <p className="text-sm font-bold truncate">{userName || 'کاربر'}</p>
                     </div>
                     <div className="p-2">
                       <Link
@@ -201,25 +203,95 @@ export default function Navbar() {
           ) : (
             <Link
               href="/login"
-              className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-brand-soft transition-colors"
+              className="w-9 h-9 xl:w-10 xl:h-10 rounded-full flex items-center justify-center hover:bg-brand-soft transition-colors"
             >
               <User size={20} className={scrolled ? 'text-ink' : 'text-gray-500'} />
             </Link>
           )}
 
-          <Link href="/services#new" className="btn btn-primary text-sm">
+          <Link
+            href="/services#new"
+            className="btn btn-primary text-xs xl:text-sm px-4 py-2 xl:px-5 xl:py-2.5"
+          >
             ثبت درخواست خدمات
           </Link>
         </div>
 
-        {/* Mobile toggle */}
-        <button
-          onClick={() => setOpen((v) => !v)}
-          className="md:hidden grid place-items-center w-10 h-10 rounded-lg bg-ink text-white"
-          aria-label="منو"
-        >
-          {open ? <X size={20} /> : <Menu size={20} />}
-        </button>
+        {/* Mobile: Cart + User + Menu */}
+        <div className="flex lg:hidden items-center gap-2">
+          {/* Cart - Mobile */}
+          <Link
+            href="/cart"
+            className="relative w-9 h-9 rounded-full flex items-center justify-center hover:bg-brand-soft transition-colors"
+          >
+            <ShoppingBag size={20} className={scrolled ? 'text-ink' : 'text-gray-500'} />
+            {cartCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-brand text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                {cartCount > 9 ? '9+' : cartCount}
+              </span>
+            )}
+          </Link>
+
+          {/* User - Mobile */}
+          {isLoggedIn ? (
+            <div className="relative">
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="w-9 h-9 xl:w-10 xl:h-10 rounded-full bg-brand/10 flex items-center justify-center hover:bg-brand/20 transition-colors"
+              >
+                <User size={20} className="text-brand" />
+              </button>
+
+              <AnimatePresence>
+                {userMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute left-0 top-11 xl:top-12 w-56 bg-white border border-line rounded-2xl shadow-xl overflow-hidden z-50"
+                  >
+                    <div className="p-3 border-b border-line">
+                      <p className="text-sm font-bold truncate">{userName || 'کاربر'}</p>
+                    </div>
+                    <div className="p-2">
+                      <Link
+                        href="/profile"
+                        className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-brand-soft transition-colors text-sm"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        <UserCircle size={18} />
+                        پروفایل من
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-red-50 text-red-500 transition-colors text-sm w-full"
+                      >
+                        <LogOut size={18} />
+                        خروج
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              className="w-9 h-9 xl:w-10 xl:h-10 rounded-full flex items-center justify-center hover:bg-brand-soft transition-colors"
+            >
+              <User size={20} className={scrolled ? 'text-ink' : 'text-gray-500'} />
+            </Link>
+          )}
+
+          {/* Menu toggle */}
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className="grid place-items-center w-9 h-9 rounded-lg bg-ink text-white"
+            aria-label="منو"
+          >
+            {open ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
       </nav>
 
       {/* Mobile menu */}
@@ -229,15 +301,17 @@ export default function Navbar() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="md:hidden overflow-hidden bg-white border-t border-line"
+            className="lg:hidden overflow-hidden bg-white border-t border-line max-h-[calc(100vh-64px)] overflow-y-auto"
           >
-            <ul className="container-x py-4 flex flex-col gap-1">
+            <ul className="container-x py-3 flex flex-col gap-0.5">
               {links.map((l) => (
                 <li key={l.href}>
                   <Link
                     href={l.href}
-                    className={`block px-4 py-3 rounded-xl font-bold ${
-                      pathname === l.href ? 'bg-brand-soft text-brand' : 'text-ink-soft'
+                    className={`block px-4 py-3 rounded-xl font-bold text-sm ${
+                      pathname === l.href
+                        ? 'bg-brand-soft text-brand'
+                        : 'text-ink-soft hover:bg-surface'
                     }`}
                   >
                     {l.label}
@@ -245,51 +319,11 @@ export default function Navbar() {
                 </li>
               ))}
 
-              {/* Mobile: Cart */}
-              <li>
+              <li className="pt-2 border-t border-line mt-2">
                 <Link
-                  href="/cart"
-                  className="flex items-center justify-between px-4 py-3 rounded-xl font-bold text-ink-soft"
+                  href="/services#new"
+                  className="btn btn-primary w-full text-sm justify-center"
                 >
-                  <span>سبد خرید</span>
-                  {cartCount > 0 && (
-                    <span className="bg-brand text-white text-xs px-3 py-1 rounded-full">
-                      {cartCount}
-                    </span>
-                  )}
-                </Link>
-              </li>
-
-              {/* Mobile: User */}
-              {isLoggedIn ? (
-                <>
-                  <li>
-                    <Link
-                      href="/profile"
-                      className="block px-4 py-3 rounded-xl font-bold text-ink-soft"
-                    >
-                      پروفایل من
-                    </Link>
-                  </li>
-                  <li>
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full text-right px-4 py-3 rounded-xl font-bold text-red-500"
-                    >
-                      خروج
-                    </button>
-                  </li>
-                </>
-              ) : (
-                <li>
-                  <Link href="/login" className="block px-4 py-3 rounded-xl font-bold text-brand">
-                    ورود / ثبت‌نام
-                  </Link>
-                </li>
-              )}
-
-              <li className="pt-2">
-                <Link href="/services#new" className="btn btn-primary w-full">
                   ثبت درخواست خدمات
                 </Link>
               </li>

@@ -17,6 +17,8 @@ import {
   Menu,
   X,
   Users,
+  HelpCircle,
+  Newspaper,
 } from 'lucide-react';
 import { isAuthed, logout } from '@/lib/auth';
 
@@ -25,6 +27,8 @@ const nav = [
   { href: '/admin/orders', label: 'سفارشات', icon: Package },
   { href: '/admin/products', label: 'محصولات', icon: Package },
   { href: '/admin/requests', label: 'درخواست‌های خدمات', icon: Headphones },
+  { href: '/admin/faq', label: 'سوالات متداول', icon: HelpCircle },
+  { href: '/admin/blog', label: 'وبلاگ', icon: Newspaper },
   { href: '/admin/messages', label: 'پیام‌های تماس', icon: MessageSquare },
   { href: '/admin/surveys', label: 'نظرسنجی‌ها', icon: Star },
   { href: '/admin/agencies', label: 'نمایندگی‌ها', icon: MapPin },

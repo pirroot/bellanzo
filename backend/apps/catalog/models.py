@@ -34,7 +34,8 @@ class Product(models.Model):
     image = models.ImageField('تصویر اصلی', upload_to='products/', blank=True, null=True)
     features = models.JSONField('ویژگی‌ها', default=list, blank=True)
     stock = models.PositiveIntegerField('موجودی', default=0)
-
+    is_spare_part = models.BooleanField('قطعه یدکی', default=False)
+    show_in_products = models.BooleanField('نمایش در محصولات', default=True)
     # Reserved for phase 2 (shop). Unused in showcase mode.
     price = models.DecimalField('قیمت', max_digits=12, decimal_places=0, default=0)
     is_purchasable = models.BooleanField('قابل خرید', default=False)
@@ -43,6 +44,14 @@ class Product(models.Model):
     is_active = models.BooleanField('فعال', default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    main_product = models.ForeignKey(
+            'self',
+            on_delete=models.SET_NULL,
+            null=True,
+            blank=True,
+            related_name='spare_parts',
+            verbose_name='محصول اصلی'
+        )
     class Meta:
         ordering = ['-created_at']
         verbose_name = 'محصول'

@@ -10,7 +10,6 @@ import {
   Star,
   MessageSquare,
   ArrowLeft,
-  Package,
   Users,
   ShoppingBag,
 } from 'lucide-react';

@@ -50,6 +50,8 @@ export interface Product {
   price: number;
   discount_price: number;
   stock: number;
+  is_spare_part: boolean;
+  show_in_products: boolean;
   features?: string[];
   gallery?: { id: number; image: string; alt: string }[];
 }
@@ -144,4 +146,18 @@ export interface CreateOrderData {
   phone: string;
   address: string;
   postal_code?: string;
+}
+
+export interface Post {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  image: string | null;
+  video_url: string;
+  author: string;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
 }

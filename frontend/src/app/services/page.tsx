@@ -51,7 +51,7 @@ export default function ServicesPage() {
   return (
     <>
       {/* Warranty Section */}
-      <section className="container-x py-16">
+      <section className="container-x py-16 mt-20">
         <div className="grid lg:grid-cols-[1fr_420px] gap-10 items-start">
           {/* Left: Warranty text */}
           <Reveal className="space-y-6 order-2 lg:order-1">

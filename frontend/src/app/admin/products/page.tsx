@@ -36,7 +36,10 @@ interface Product {
   is_purchasable: boolean;
   stock: number;
   discount_price: number;
+  is_spare_part: boolean;
+  show_in_products: boolean;
 }
+
 const field =
   'w-full rounded-xl border border-line bg-white px-4 py-3 outline-none focus:border-brand transition-colors text-sm';
 
@@ -53,6 +56,8 @@ const EMPTY_PRODUCT: Partial<Product> = {
   is_purchasable: false,
   stock: 0,
   discount_price: 0,
+  is_spare_part: false,
+  show_in_products: true,
 };
 const EMPTY_CAT: Partial<Category> = {
   name: '',
@@ -254,6 +259,7 @@ export default function ProductsAdmin() {
                   <th className="text-right p-3 font-bold hidden sm:table-cell">موجودی</th>
                   <th className="text-right p-3 font-bold">وضعیت</th>
                   <th className="text-right p-3 font-bold hidden sm:table-cell">ویژه</th>
+                  <th className="text-right p-3 font-bold hidden sm:table-cell">قطعه</th>
                 </tr>
               </thead>
               <tbody>
@@ -305,6 +311,15 @@ export default function ProductsAdmin() {
                         }}
                       >
                         {p.name}
+                      </td>
+                      <td className="p-3 hidden sm:table-cell">
+                        {p.is_spare_part ? (
+                          <span className="px-2 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
+                            🔧 قطعه
+                          </span>
+                        ) : (
+                          '—'
+                        )}
                       </td>
                       <td
                         className="p-3 text-muted hidden sm:table-cell"
@@ -547,6 +562,8 @@ function ProductDrawer({
       fd.append('is_active', String(form.is_active !== false));
       fd.append('price', String(form.price || 0));
       fd.append('is_purchasable', String(!!form.is_purchasable));
+      fd.append('is_spare_part', String(!!form.is_spare_part));
+      fd.append('show_in_products', String(form.show_in_products !== false));
       fd.append('stock', String(form.stock || 0));
       fd.append('discount_price', String(form.discount_price || 0));
       fd.append(
@@ -775,6 +792,47 @@ function ProductDrawer({
             className="w-5 h-5 accent-brand shrink-0"
           />
         </label>
+        {/* Spare Part Toggle */}
+        <label
+          className={`flex items-center justify-between gap-3 rounded-2xl border-2 p-4 cursor-pointer transition-colors ${
+            form.is_spare_part ? 'border-amber-400 bg-amber-50' : 'border-line bg-surface'
+          }`}
+        >
+          <div>
+            <p className="font-bold text-ink text-sm">🔧 قطعه یدکی</p>
+            <p className="text-xs text-muted mt-0.5">این محصول یک قطعه یدکی است</p>
+          </div>
+          <input
+            type="checkbox"
+            checked={!!form.is_spare_part}
+            onChange={(e) => set('is_spare_part', e.target.checked)}
+            className="w-5 h-5 accent-brand shrink-0"
+          />
+        </label>
+
+        {/* Show in Products Toggle - فقط برای قطعات یدکی */}
+        {form.is_spare_part && (
+          <label
+            className={`flex items-center justify-between gap-3 rounded-2xl border-2 p-4 cursor-pointer transition-colors ${
+              form.show_in_products !== false
+                ? 'border-blue-400 bg-blue-50'
+                : 'border-line bg-surface'
+            }`}
+          >
+            <div>
+              <p className="font-bold text-ink text-sm">📦 نمایش در محصولات</p>
+              <p className="text-xs text-muted mt-0.5">
+                این قطعه در صفحه محصولات نیز نمایش داده شود
+              </p>
+            </div>
+            <input
+              type="checkbox"
+              checked={form.show_in_products !== false}
+              onChange={(e) => set('show_in_products', e.target.checked)}
+              className="w-5 h-5 accent-brand shrink-0"
+            />
+          </label>
+        )}
 
         <label
           className={`flex items-center justify-between gap-3 rounded-2xl border-2 p-4 cursor-pointer transition-colors ${form.is_active !== false ? 'border-green-400 bg-green-50' : 'border-line bg-surface'}`}
@@ -903,7 +961,7 @@ function CategoryDrawer({
   }
 
   return (
-    <div className="fixed inset-0 z-[60]">
+    <div className="fixed inset-0 z-60">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div className="absolute inset-y-0 right-0 w-full sm:max-w-lg bg-white overflow-y-auto p-5 sm:p-7 shadow-2xl flex flex-col gap-5">
         <div className="flex items-center justify-between">

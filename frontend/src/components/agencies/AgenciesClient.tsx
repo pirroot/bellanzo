@@ -437,7 +437,7 @@ export default function AgenciesClient({ agencies }: { agencies: Agency[] }) {
   const selectedProvinceName = ALL_PROVINCES.find((p) => p.id === selected)?.name;
 
   return (
-    <div className="container-x py-10">
+    <div className="container-x py-10 mt-20">
       <div className="grid lg:grid-cols-[1.6fr_1fr] gap-6 items-start">
         {/* Map */}
         <div className="bg-white rounded-3xl border border-line p-4">

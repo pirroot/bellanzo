@@ -27,6 +27,7 @@ class ProductListSerializer(serializers.ModelSerializer):
             'id', 'name', 'slug', 'short_description', 'image',
             'category', 'category_name', 'is_featured', 'is_active',
             'price', 'discount_price', 'stock', 'is_purchasable',
+            'is_spare_part', 'show_in_products',
         ]
 
 
@@ -40,6 +41,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             'image', 'features', 'gallery',
             'category', 'is_featured',
             'price', 'discount_price', 'stock', 'is_purchasable',
+            'is_spare_part', 'show_in_products',
         ]
 
 

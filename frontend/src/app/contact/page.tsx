@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
-import { Phone, MapPin, Clock, Building2 } from 'lucide-react';
+import { Phone, MapPin, Clock, Building2, HelpCircle, MessageCircle } from 'lucide-react';
 import Reveal from '@/components/ui/Reveal';
-import FAQComponent from '@/components/faq/FAQComponent';
+import FaqClient from '@/components/faq/FaqClient';
+import { serverFetch } from '@/lib/api';
 
 export const metadata: Metadata = {
   title: 'درباره و تماس با ما',
@@ -57,14 +58,25 @@ const contactInfo = [
   { icon: Clock, title: 'ساعت کاری', value: 'شنبه تا چهارشنبه ۹ تا ۱۷' },
 ];
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  let faqs: any[] = [];
+  try {
+    const data = await serverFetch<any>('/faqs/');
+    faqs = Array.isArray(data) ? data : data?.results || [];
+  } catch (error) {
+    console.error('Error fetching FAQs:', error);
+  }
+
   return (
     <>
       {/* Company Introduction */}
       <section className="container-x py-16 mt-20">
         <Reveal>
-          <div className="max-w-4xl mx-auto bg-white rounded-3xl border border-line p-8 md:p-12">
-            <h1 className="text-2xl md:text-3xl font-black text-ink mb-8">معرفی شرکت بلانزو</h1>
+          <div className="max-w-4xl mx-auto bg-white rounded-3xl border border-line p-8 md:p-12 shadow-sm">
+            <div className="flex items-center gap-3 mb-6">
+              <span className="w-1 h-8 bg-brand rounded-full" />
+              <h1 className="text-2xl md:text-3xl font-black text-ink">معرفی شرکت بلانزو</h1>
+            </div>
             <div className="space-y-6 text-muted leading-9 text-base">
               <p>
                 شرکت بلانزو با بیش از نیم قرن تجربه، تخصص و مهارت در صنعت لوازم خانگی ایران،
@@ -88,28 +100,51 @@ export default function ContactPage() {
         </Reveal>
       </section>
 
-      {/* <FAQComponent /> */}
+      {/* FAQ Section */}
+      <section className="bg-surface py-16">
+        <div className="container-x">
+          <Reveal>
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 bg-brand-soft text-brand px-4 py-2 rounded-full text-sm font-bold mb-4">
+                <HelpCircle size={18} />
+                پرسش‌های متداول
+              </div>
+              <h2 className="text-3xl md:text-4xl font-black text-ink">سوالات متداول</h2>
+              <p className="text-muted mt-3 max-w-2xl mx-auto">
+                پاسخ به سوالات رایج درباره محصولات، گارانتی و خدمات پس از فروش
+              </p>
+            </div>
+          </Reveal>
+          <FaqClient faqs={faqs} />
+        </div>
+      </section>
 
       {/* Contact Info */}
-      <section className="bg-surface">
-        <div className="container-x py-16">
-          <Reveal className="max-w-4xl mx-auto grid sm:grid-cols-2 gap-5">
-            {contactInfo.map((it) => (
-              <div
-                key={it.title}
-                className="flex items-start gap-4 bg-white rounded-2xl border border-line p-5"
-              >
-                <span className="grid place-items-center w-12 h-12 rounded-xl bg-brand-soft text-brand shrink-0 mt-0.5">
-                  <it.icon size={22} />
-                </span>
-                <div>
-                  <div className="text-sm text-muted">{it.title}</div>
-                  <div className="font-bold text-ink leading-7">{it.value}</div>
-                </div>
-              </div>
-            ))}
-          </Reveal>
-        </div>
+      <section className="container-x py-16">
+        <Reveal>
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-brand-soft text-brand px-4 py-2 rounded-full text-sm font-bold mb-4">
+              <MessageCircle size={18} />
+              ارتباط با ما
+            </div>
+            <h2 className="text-3xl md:text-4xl font-black text-ink">اطلاعات تماس</h2>
+            <p className="text-muted mt-3">راه‌های ارتباطی با شرکت بلانزو</p>
+          </div>
+        </Reveal>
+        <Reveal className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-5xl mx-auto">
+          {contactInfo.map((it, i) => (
+            <div
+              key={i}
+              className="bg-white rounded-3xl border border-line p-6 text-center card-hover group"
+            >
+              <span className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-brand-soft text-brand mb-4 group-hover:bg-brand group-hover:text-white transition-colors">
+                <it.icon size={26} />
+              </span>
+              <div className="text-sm text-muted mb-1">{it.title}</div>
+              <div className="font-bold text-ink leading-7 text-sm">{it.value}</div>
+            </div>
+          ))}
+        </Reveal>
       </section>
     </>
   );
