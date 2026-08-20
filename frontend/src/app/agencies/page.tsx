@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import AgenciesClient from '@/components/agencies/AgenciesClient';
 import { serverFetch } from '@/lib/api';
+import PageHeader from '@/components/PageHeader';
 
 export const metadata: Metadata = {
   title: 'نمایندگی‌ها',
@@ -51,5 +52,10 @@ interface Agency {
 export default async function AgenciesPage() {
   const agencies = (await serverFetch<Agency[]>('/agencies/')) ?? [];
 
-  return <AgenciesClient agencies={agencies} />;
+  return (
+    <>
+      <PageHeader page="agencies" title="نمایندگی‌ها" subtitle="نمایندگان مجاز فروش و خدمات" />
+      <AgenciesClient agencies={agencies} />
+    </>
+  );
 }

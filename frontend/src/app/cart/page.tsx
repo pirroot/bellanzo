@@ -4,7 +4,7 @@ import Reveal from '@/components/ui/Reveal';
 import { clearCart, getCart, mediaUrl, removeFromCart, updateCartQuantity } from '@/lib/api';
 import type { Cart as CartType } from '@/lib/types';
 import { formatPrice } from '@/lib/utils';
-import { ArrowLeft, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
+import { ArrowLeft, Minus, Plus, ShoppingBag, Trash2, Wrench } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -137,15 +137,29 @@ export default function CartPage() {
                       <ShoppingBag size={32} />
                     </div>
                   )}
+                  {/* 🔥 برچسب قطعه یدکی روی تصویر */}
+                  {item.is_spare_part && (
+                    <div className="absolute top-1 right-1 bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5 shadow-md">
+                      <Wrench size={10} /> یدکی
+                    </div>
+                  )}
                 </div>
 
-                <div className="flex-1">
-                  <Link
-                    href={`/products/${item.product}`}
-                    className="font-bold hover:text-brand transition-colors"
-                  >
-                    {item.product_name}
-                  </Link>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Link
+                      href={`/products/${item.product}`}
+                      className="font-bold hover:text-brand transition-colors truncate"
+                    >
+                      {item.product_name}
+                    </Link>
+                    {/* 🔥 برچسب قطعه یدکی کنار اسم */}
+                    {item.is_spare_part && (
+                      <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5 whitespace-nowrap">
+                        <Wrench size={10} /> قطعه یدکی
+                      </span>
+                    )}
+                  </div>
 
                   {/* قیمت با تخفیف */}
                   <div className="text-sm text-muted mt-1">
@@ -164,7 +178,7 @@ export default function CartPage() {
                   </div>
 
                   {/* Quantity Selector */}
-                  <div className="flex items-center gap-2 mt-2">
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
                     <button
                       onClick={() =>
                         handleUpdateQuantity(item.product, item.quantity - 1, item.max_stock)
@@ -227,6 +241,12 @@ export default function CartPage() {
               <div className="flex justify-between">
                 <span className="text-muted">تعداد اقلام</span>
                 <span className="font-bold">{cart.items_count}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted">تعداد قطعات یدکی</span>
+                <span className="font-bold text-amber-600">
+                  {cart.items.filter((item) => item.is_spare_part).length}
+                </span>
               </div>
               <div className="flex justify-between text-lg font-bold border-t border-line pt-4 mt-4">
                 <span>مجموع</span>

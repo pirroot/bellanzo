@@ -3,6 +3,7 @@ import { Phone, MapPin, Clock, Building2, HelpCircle, MessageCircle } from 'luci
 import Reveal from '@/components/ui/Reveal';
 import FaqClient from '@/components/faq/FaqClient';
 import { serverFetch } from '@/lib/api';
+import PageHeader from '@/components/PageHeader';
 
 export const metadata: Metadata = {
   title: 'درباره و تماس با ما',
@@ -69,6 +70,11 @@ export default async function ContactPage() {
 
   return (
     <>
+      <PageHeader
+        page="contact" // <--- اضافه کن
+        title="تماس با ما"
+        subtitle="ارتباط با تیم بلانزو"
+      />
       {/* Company Introduction */}
       <section className="container-x py-16 mt-20">
         <Reveal>

@@ -19,6 +19,7 @@ import {
   Users,
   HelpCircle,
   Newspaper,
+  Layout,
 } from 'lucide-react';
 import { isAuthed, logout } from '@/lib/auth';
 
@@ -31,9 +32,11 @@ const nav = [
   { href: '/admin/blog', label: 'وبلاگ', icon: Newspaper },
   { href: '/admin/messages', label: 'پیام‌های تماس', icon: MessageSquare },
   { href: '/admin/surveys', label: 'نظرسنجی‌ها', icon: Star },
+  { href: '/admin/feedbacks', label: 'انتقادات و پیشنهادات', icon: MessageSquare },
   { href: '/admin/agencies', label: 'نمایندگی‌ها', icon: MapPin },
   { href: '/admin/agency-requests', label: 'درخواست‌های نمایندگی', icon: ClipboardList },
   { href: '/admin/users', label: 'کاربران', icon: Users },
+  { href: '/admin/page-headers', label: 'سربرگ صفحات', icon: Layout },
   { href: '/admin/settings', label: 'تنظیمات سایت', icon: Settings },
 ];
 function SidebarContent({ onClose }: { onClose?: () => void }) {

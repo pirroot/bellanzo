@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { serverFetch } from '@/lib/api';
 import type { Category, Paginated, Product } from '@/lib/types';
 import ProductsClient from '@/components/products/ProductsClient';
+import PageHeader from '@/components/PageHeader';
 
 export const metadata: Metadata = {
   title: 'محصولات',
@@ -56,6 +57,11 @@ export default async function ProductsPage({
 
   return (
     <>
+      <PageHeader
+        page="products"
+        title="محصولات"
+        subtitle="خرید انواع لوازم خانگی با کیفیت و گارانتی معتبر"
+      />
       <ProductsClient
         categories={cats ?? []}
         initialProducts={data?.results ?? []}

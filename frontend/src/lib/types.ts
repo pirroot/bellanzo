@@ -50,10 +50,12 @@ export interface Product {
   price: number;
   discount_price: number;
   stock: number;
-  is_spare_part: boolean;
-  show_in_products: boolean;
   features?: string[];
   gallery?: { id: number; image: string; alt: string }[];
+  is_spare_part: boolean;
+  show_in_products: boolean;
+  main_product: number | null;
+  main_product_name?: string;
 }
 
 export interface Paginated<T> {
@@ -94,6 +96,7 @@ export interface CartItem {
   quantity: number;
   subtotal: number;
   max_stock: number;
+  is_spare_part: boolean;
 }
 
 export interface Cart {
@@ -101,6 +104,7 @@ export interface Cart {
   items: CartItem[];
   total: number;
   items_count: number;
+  is_spare_part: boolean;
 }
 
 export interface OrderItem {
@@ -160,4 +164,17 @@ export interface Post {
   is_published: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface Feedback {
+  id: number;
+  full_name: string;
+  phone: string;
+  email: string;
+  product_model: string;
+  rating: number;
+  message: string;
+  is_read: boolean;
+  is_approved: boolean;
+  created_at: string;
 }

@@ -41,7 +41,9 @@ INSTALLED_APPS = [
     'apps.agencies',
     'apps.accounts',
     "apps.faq",
-    "apps.blog"
+    "apps.blog",
+    'apps.feedback',
+
 
 ]
 

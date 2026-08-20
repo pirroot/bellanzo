@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Check, ArrowRight, Headphones } from 'lucide-react';
+import { Check, ArrowRight, Headphones, Wrench } from 'lucide-react';
 import { serverFetch, mediaUrl } from '@/lib/api';
 import type { Product } from '@/lib/types';
 import Reveal from '@/components/ui/Reveal';
@@ -75,25 +75,72 @@ export default async function ProductDetail({ params }: Props) {
   const img = mediaUrl(product.image);
   const cat = typeof product.category === 'object' ? product.category : null;
 
+  // 🔥 بررسی اینکه آیا محصول قطعه یدکی است
+  const isSparePart = product.is_spare_part === true;
+
   const hasDiscount = product.discount_price && product.discount_price > 0;
   const isOutOfStock = product.stock === 0;
 
-  // Fetch similar products (same category)
-  let similarProducts: Product[] = [];
-  if (cat && cat.id) {
-    const similarData = await serverFetch<{ results: Product[] }>(
-      `/products/?category=${cat.slug}&exclude=${product.id}`
-    );
-    similarProducts = similarData?.results?.slice(0, 4) || [];
+  // 🔥 دریافت محصول اصلی (اگر قطعه یدکی باشد)
+  let mainProduct: Product | null = null;
+  if (isSparePart && product.main_product) {
+    try {
+      // اگر main_product یک عدد است (ID)
+      if (typeof product.main_product === 'number') {
+        // برای دریافت محصول اصلی باید از API استفاده کنیم
+        const mainProductData = await serverFetch<Product>(`/products/${product.main_product}/`);
+        mainProduct = mainProductData;
+      }
+      // اگر main_product یک object است
+      else if (typeof product.main_product === 'object' && product.main_product?.slug) {
+        mainProduct = product.main_product as Product;
+      }
+    } catch (error) {
+      console.error('Error fetching main product:', error);
+      mainProduct = null;
+    }
   }
 
-  // Fetch related spare parts (same category, is_spare_part=true)
+  // 🔥 دریافت قطعات یدکی مرتبط با این محصول (فقط برای محصولات معمولی)
   let relatedParts: Product[] = [];
+  if (!isSparePart && product.id) {
+    try {
+      const partsData = await serverFetch<{ results: Product[] }>(
+        `/products/?main_product=${product.id}&is_spare_part=true`
+      );
+      relatedParts = partsData?.results?.slice(0, 4) || [];
+    } catch (error) {
+      console.error('Error fetching spare parts:', error);
+      relatedParts = [];
+    }
+  }
+
+  // 🔥 دریافت جدیدترین محصولات همین دسته (۴ تا)
+  let categoryProducts: Product[] = [];
   if (cat && cat.id) {
-    const partsData = await serverFetch<{ results: Product[] }>(
-      `/products/?category=${cat.slug}&is_spare_part=true&exclude=${product.id}`
-    );
-    relatedParts = partsData?.results?.slice(0, 4) || [];
+    try {
+      const catData = await serverFetch<{ results: Product[] }>(
+        `/products/?category=${cat.slug}&exclude=${product.id}&is_spare_part=false&ordering=-created_at&limit=4`
+      );
+      categoryProducts = catData?.results?.slice(0, 4) || [];
+    } catch (error) {
+      console.error('Error fetching category products:', error);
+      categoryProducts = [];
+    }
+  }
+
+  // 🔥 دریافت محصولات مشابه (۴ تا)
+  let similarProducts: Product[] = [];
+  if (cat && cat.id) {
+    try {
+      const similarData = await serverFetch<{ results: Product[] }>(
+        `/products/?category=${cat.slug}&exclude=${product.id}&is_spare_part=false&ordering=name&limit=4`
+      );
+      similarProducts = similarData?.results?.slice(0, 4) || [];
+    } catch (error) {
+      console.error('Error fetching similar products:', error);
+      similarProducts = [];
+    }
   }
 
   return (
@@ -110,6 +157,14 @@ export default async function ProductDetail({ params }: Props) {
               محصولات
             </Link>
             <ArrowRight size={14} />
+            {isSparePart && mainProduct && (
+              <>
+                <Link href={`/products/${mainProduct.slug}`} className="hover:text-brand">
+                  {mainProduct.name}
+                </Link>
+                <ArrowRight size={14} />
+              </>
+            )}
             <span className="text-ink font-bold">{product.name}</span>
           </nav>
 
@@ -121,7 +176,24 @@ export default async function ProductDetail({ params }: Props) {
 
             {/* Info */}
             <Reveal delay={0.1}>
-              {cat && <span className="text-brand font-bold text-sm">{cat.name}</span>}
+              {isSparePart ? (
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                    <Wrench size={14} /> قطعه یدکی
+                  </span>
+                  {mainProduct && (
+                    <Link
+                      href={`/products/${mainProduct.slug}`}
+                      className="text-xs text-brand hover:underline"
+                    >
+                      مناسب برای {mainProduct.name}
+                    </Link>
+                  )}
+                </div>
+              ) : (
+                cat && <span className="text-brand font-bold text-sm">{cat.name}</span>
+              )}
+
               <h1 className="mt-2 text-3xl md:text-4xl font-black text-ink">{product.name}</h1>
               <p className="mt-4 text-muted leading-8">{product.short_description}</p>
 
@@ -150,8 +222,8 @@ export default async function ProductDetail({ params }: Props) {
             </Reveal>
           </div>
 
-          {/* Related Spare Parts */}
-          {relatedParts.length > 0 && (
+          {/* 🔥 قطعات یدکی مرتبط - فقط برای محصولات معمولی */}
+          {!isSparePart && relatedParts.length > 0 && (
             <div className="mt-20">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-black text-ink flex items-center gap-2">
@@ -169,7 +241,29 @@ export default async function ProductDetail({ params }: Props) {
             </div>
           )}
 
-          {/* Similar Products */}
+          {/* 🔥 جدیدترین محصولات همین دسته */}
+          {categoryProducts.length > 0 && (
+            <div className="mt-20">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-black text-ink">
+                  {isSparePart ? 'جدیدترین قطعات یدکی' : `جدیدترین محصولات ${cat?.name}`}
+                </h2>
+                <Link
+                  href={isSparePart ? '/spare-parts' : `/products?category=${cat?.slug || ''}`}
+                  className="text-sm text-brand hover:underline font-bold"
+                >
+                  مشاهده همه
+                </Link>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {categoryProducts.map((p) => (
+                  <ProductCard key={p.id} product={p} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 🔥 محصولات مشابه */}
           {similarProducts.length > 0 && (
             <div className="mt-20">
               <div className="flex items-center justify-between mb-6">
@@ -191,7 +285,7 @@ export default async function ProductDetail({ params }: Props) {
         </div>
       </div>
 
-      {/* Sticky Bottom Bar - Price & Add to Cart */}
+      {/* نوار پایین ثابت - قیمت و دکمه افزودن به سبد خرید */}
       {product.is_purchasable && product.price > 0 && (
         <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-t border-line shadow-lg p-4">
           <div className="container-x flex items-center justify-between gap-4 flex-wrap">

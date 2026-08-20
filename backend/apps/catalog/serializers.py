@@ -20,6 +20,7 @@ class ProductImageSerializer(serializers.ModelSerializer):
 
 class ProductListSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', default='', read_only=True)
+    main_product_name = serializers.CharField(source='main_product.name', default='', read_only=True)
 
     class Meta:
         model = Product
@@ -27,7 +28,7 @@ class ProductListSerializer(serializers.ModelSerializer):
             'id', 'name', 'slug', 'short_description', 'image',
             'category', 'category_name', 'is_featured', 'is_active',
             'price', 'discount_price', 'stock', 'is_purchasable',
-            'is_spare_part', 'show_in_products',
+            'is_spare_part', 'show_in_products','main_product', 'main_product_name',
         ]
 
 

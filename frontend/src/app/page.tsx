@@ -29,9 +29,9 @@ export default async function Home() {
       <WhyUs />
       <NewProducts products={newProducts?.results || []} />
       <FeaturedProducts />
-      <BlogPreview posts={blogPosts?.results || []} />
       <ServicesPreview />
       <Categories cats={cats ?? []} />
+      <BlogPreview posts={blogPosts?.results || []} />
     </>
   );
 }

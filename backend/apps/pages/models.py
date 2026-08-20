@@ -1,6 +1,5 @@
 from django.db import models
 
-
 class SiteSetting(models.Model):
     """Singleton-ish global brand & contact settings, editable from the panel."""
     brand_name = models.CharField('نام برند', max_length=120, default='برند ما')
@@ -34,6 +33,10 @@ class SiteSetting(models.Model):
         default=0,
         help_text='اگر ۰ باشد، ارسال رایگان فعال نیست.'
     )
+
+    # ========== اضافه کن ==========
+    page_headers = models.JSONField('تنظیمات سربرگ صفحات', default=dict, blank=True)
+    # ==============================
 
     maintenance_mode = models.BooleanField('حالت تعمیر (فقط خدمات)', default=False)
 
@@ -82,4 +85,3 @@ class HeroSlide(models.Model):
 
     def __str__(self):
         return self.title
-

@@ -15,6 +15,7 @@ api_patterns = [
     path('', include('apps.accounts.urls')),
     path('', include('apps.faq.urls')),
     path('', include('apps.blog.urls')),
+    path('', include('apps.feedback.urls')),
     path('auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 

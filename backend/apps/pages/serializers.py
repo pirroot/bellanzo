@@ -17,6 +17,7 @@ class SiteSettingSerializer(serializers.ModelSerializer):
             'hero_cta_label', 'hero_cta_link',
             'shipping_cost', 'free_shipping_threshold',
             'maintenance_mode',
+            'page_headers',
         ]
 
 
@@ -30,4 +31,3 @@ class HeroSlideSerializer(serializers.ModelSerializer):
     class Meta:
         model = HeroSlide
         fields = ['id', 'title', 'subtitle', 'image', 'cta_label', 'cta_link', 'order', 'is_active']
-

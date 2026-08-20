@@ -12,7 +12,6 @@ import type { Cart } from '@/lib/types';
 const links = [
   { href: '/', label: 'خانه' },
   { href: '/products', label: 'محصولات' },
-  { href: '/spare-parts', label: 'قطعات یدکی' },
   { href: '/services', label: 'خدمات پس از فروش' },
   { href: '/agencies', label: 'نمایندگی‌ها' },
   { href: '/blog', label: 'وبلاگ' },
@@ -97,7 +96,7 @@ export default function Navbar() {
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'bg-white/90 backdrop-blur-md shadow-[0_8px_30px_-12px_rgba(0,0,0,.15)]'
+          ? 'bg-white/70 backdrop-blur-lg shadow-[0_8px_30px_-12px_rgba(0,0,0,.15)]'
           : 'bg-transparent'
       }`}
     >

@@ -1,36 +1,44 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { CheckCircle2, Loader2 } from "lucide-react";
-import { apiFetch } from "@/lib/api";
-
-const field =
-  "w-full rounded-xl border border-line bg-white px-4 py-3 outline-none focus:border-brand transition-colors";
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Star, Send, Loader2, CheckCircle2 } from 'lucide-react';
+import { apiFetch } from '@/lib/api';
 
 export default function FeedbackForm() {
   const [loading, setLoading] = useState(false);
-  const [done, setDone] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [form, setForm] = useState({
+    full_name: '',
+    phone: '',
+    email: '',
+    product_model: '',
+    message: '',
+  });
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
-    const fd = new FormData(e.currentTarget);
-    const body: Record<string, string> = {};
-    for (const [k, v] of fd.entries()) body[k] = v as string;
+    setError('');
     try {
-      await apiFetch("/feedbacks/", { method: "POST", body: JSON.stringify(body) });
-      setDone(true);
+      await apiFetch('/feedbacks/', {
+        method: 'POST',
+        body: JSON.stringify({ ...form, rating }),
+      });
+      setSuccess(true);
+      setForm({ full_name: '', phone: '', email: '', product_model: '', message: '' });
+      setRating(5);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "خطایی رخ داد.");
+      setError(err instanceof Error ? err.message : 'خطایی رخ داد.');
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  if (done) {
+  if (success) {
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -40,67 +48,101 @@ export default function FeedbackForm() {
         <span className="grid place-items-center w-16 h-16 mx-auto rounded-full bg-brand-soft text-brand mb-5">
           <CheckCircle2 size={34} />
         </span>
-        <h3 className="text-2xl font-black text-ink">پیام شما ثبت شد!</h3>
-        <p className="mt-2 text-muted">
-          از اینکه وقت گذاشتید و نظر خود را با ما در میان گذاشتید سپاسگزاریم.
-        </p>
+        <h3 className="text-2xl font-black text-ink">نظر شما ثبت شد!</h3>
+        <button onClick={() => setSuccess(false)} className="btn btn-outline mt-6">
+          ثبت نظر جدید
+        </button>
       </motion.div>
     );
   }
 
   return (
     <form
-      onSubmit={onSubmit}
+      onSubmit={handleSubmit}
       className="bg-white rounded-3xl border border-line p-7 md:p-9 grid gap-5"
     >
-      <h3 className="font-black text-lg text-ink border-b border-line pb-4">
-        انتقادات و پیشنهادات
-      </h3>
+      <div className="grid sm:grid-cols-2 gap-5">
+        <div>
+          <label className="block text-sm font-bold mb-2">نام و نام خانوادگی *</label>
+          <input
+            required
+            value={form.full_name}
+            onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+            className="w-full rounded-xl border border-line bg-white px-4 py-3 outline-none focus:border-brand"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-bold mb-2">شماره تماس *</label>
+          <input
+            required
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            className="w-full rounded-xl border border-line bg-white px-4 py-3 outline-none focus:border-brand"
+            dir="ltr"
+          />
+        </div>
+      </div>
 
       <div className="grid sm:grid-cols-2 gap-5">
         <div>
-          <label className="block text-sm font-bold text-ink-soft mb-2">
-            نام و نام خانوادگی <span className="text-brand">*</span>
-          </label>
-          <input name="full_name" required className={field} />
+          <label className="block text-sm font-bold mb-2">ایمیل</label>
+          <input
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            className="w-full rounded-xl border border-line bg-white px-4 py-3 outline-none focus:border-brand"
+            dir="ltr"
+          />
         </div>
         <div>
-          <label className="block text-sm font-bold text-ink-soft mb-2">
-            شماره تماس <span className="text-brand">*</span>
-          </label>
-          <input name="phone" required dir="ltr" className={field} />
-        </div>
-        <div>
-          <label className="block text-sm font-bold text-ink-soft mb-2">مدل کالا</label>
-          <input name="product_model" className={field} />
-        </div>
-        <div>
-          <label className="block text-sm font-bold text-ink-soft mb-2">تاریخ خرید</label>
-          <input name="purchase_date" type="date" dir="ltr" className={field} />
-        </div>
-        <div>
-          <label className="block text-sm font-bold text-ink-soft mb-2">شماره سریال</label>
-          <input name="serial_number" dir="ltr" className={field} />
-        </div>
-        <div>
-          <label className="block text-sm font-bold text-ink-soft mb-2">آدرس ایمیل</label>
-          <input name="email" type="email" dir="ltr" className={field} />
+          <label className="block text-sm font-bold mb-2">مدل کالا</label>
+          <input
+            value={form.product_model}
+            onChange={(e) => setForm({ ...form, product_model: e.target.value })}
+            className="w-full rounded-xl border border-line bg-white px-4 py-3 outline-none focus:border-brand"
+          />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-bold text-ink-soft mb-2">
-          متن انتقاد و پیشنهادات <span className="text-brand">*</span>
-        </label>
-        <textarea name="message" required rows={5} className={field} />
+        <label className="block text-sm font-bold mb-2">امتیاز شما</label>
+        <div className="flex items-center gap-4">
+          <div className="flex gap-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                type="button"
+                onClick={() => setRating(star)}
+                onMouseEnter={() => setHoverRating(star)}
+                onMouseLeave={() => setHoverRating(0)}
+              >
+                <Star
+                  className={`w-8 h-8 ${star <= (hoverRating || rating) ? 'fill-brand text-brand' : 'text-gray-300'}`}
+                />
+              </button>
+            ))}
+          </div>
+          <span className="text-sm text-muted font-bold">{rating} از ۵ ستاره</span>
+        </div>
       </div>
 
-      {error && (
-        <p className="text-brand bg-brand-soft rounded-xl px-4 py-3 text-sm">{error}</p>
-      )}
+      <div>
+        <label className="block text-sm font-bold mb-2">متن نظر *</label>
+        <textarea
+          required
+          rows={4}
+          value={form.message}
+          onChange={(e) => setForm({ ...form, message: e.target.value })}
+          className="w-full rounded-xl border border-line bg-white px-4 py-3 outline-none focus:border-brand"
+          placeholder="نظر خود را بنویسید..."
+        />
+      </div>
 
-      <button disabled={loading} className="btn btn-primary justify-center">
-        {loading ? <Loader2 size={18} className="animate-spin" /> : "ارسال"}
+      {error && <p className="text-brand bg-brand-soft rounded-xl px-4 py-3 text-sm">{error}</p>}
+
+      <button disabled={loading} className="btn btn-primary justify-center flex items-center gap-2">
+        {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+        {loading ? 'در حال ارسال...' : 'ارسال نظر'}
       </button>
     </form>
   );

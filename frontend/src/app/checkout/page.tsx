@@ -4,7 +4,7 @@ import Reveal from '@/components/ui/Reveal';
 import { createOrder, getCart, initiatePayment, apiFetch } from '@/lib/api';
 import type { Cart as CartType } from '@/lib/types';
 import { formatPrice } from '@/lib/utils';
-import { ArrowLeft, ShieldCheck, Truck } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, Truck, Wrench } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
@@ -52,6 +52,8 @@ export default function CheckoutPage() {
   const isFreeShipping = freeThreshold > 0 && subtotal >= freeThreshold;
   const finalShipping = isFreeShipping ? 0 : shippingCost;
   const total = subtotal + finalShipping;
+
+  const sparePartsCount = cart?.items.filter((item) => item.is_spare_part).length || 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -179,14 +181,36 @@ export default function CheckoutPage() {
               <h3 className="text-xl font-black mb-4">خلاصه سفارش</h3>
               <div className="space-y-3 max-h-64 overflow-y-auto">
                 {cart.items.map((item) => (
-                  <div key={item.id} className="flex justify-between text-sm">
-                    <span className="text-muted">
-                      {item.product_name} × {item.quantity}
+                  <div key={item.id} className="flex justify-between text-sm items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <span className="text-muted">
+                          {item.product_name} × {item.quantity}
+                        </span>
+                        {/* 🔥 برچسب قطعه یدکی */}
+                        {item.is_spare_part && (
+                          <span className="bg-amber-100 text-amber-700 text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                            <Wrench size={8} /> یدکی
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <span className="font-bold whitespace-nowrap mr-2">
+                      {formatPrice(item.subtotal)} ریال
                     </span>
-                    <span className="font-bold">{formatPrice(item.subtotal)} ریال</span>
                   </div>
                 ))}
               </div>
+
+              {/* 🔥 نمایش تعداد قطعات یدکی */}
+              {sparePartsCount > 0 && (
+                <div className="flex justify-between text-sm bg-amber-50 rounded-xl px-3 py-2 mt-3">
+                  <span className="text-amber-700 flex items-center gap-1">
+                    <Wrench size={14} /> قطعات یدکی
+                  </span>
+                  <span className="font-bold text-amber-700">{sparePartsCount} عدد</span>
+                </div>
+              )}
 
               <div className="border-t border-line pt-4 mt-4 space-y-2">
                 <div className="flex justify-between text-sm">
